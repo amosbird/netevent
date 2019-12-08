@@ -680,21 +680,6 @@ addOutput(int clientfd, const vector<string>& args)
 }
 
 static void
-grabCommand(int clientfd, const char *state)
-{
-	if (parseBool(&gGrab, state)) {
-		// nothing
-	}
-	else if (!::strcasecmp(state, "toggle"))
-	{
-		gGrab = !gGrab;
-	}
-	else
-		throw MsgException("unknown grab state: %s", state);
-	grab(clientfd, gGrab);
-}
-
-static void
 addHotkey(uint16_t device, uint16_t type, uint16_t code, int32_t value,
           string command)
 {
@@ -732,6 +717,25 @@ shellCommand(const char *cmd, bool background)
 	do {
 		// wait
 	} while (::waitpid(pid, &status, 0) != pid);
+}
+
+static void
+grabCommand(int clientfd, const char *state)
+{
+	if (parseBool(&gGrab, state)) {
+		// nothing
+	}
+	else if (!::strcasecmp(state, "toggle"))
+	{
+		gGrab = !gGrab;
+	}
+	else
+		throw MsgException("unknown grab state: %s", state);
+	grab(clientfd, gGrab);
+	if (gGrab)
+		shellCommand("setterm --blank force", false);
+	else
+		shellCommand("setterm --blank poke", false);
 }
 
 static inline constexpr bool
